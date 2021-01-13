@@ -1,22 +1,42 @@
-import os
-
+# import os
 import sqlite3
+from typing import Dict, List
 
 
-conn = sqlite3.connect(os.path.join("db", "workout.db"))
+# conn = sqlite3.connect(os.path.join("workout.db"))
+conn = sqlite3.connect("workout.db")
 cursor = conn.cursor()
 
 
-def insert(table, column_values):
-    pass
+def insert(table: str, column_values: Dict):
+    columns = ', '.join(column_values.keys())
+    values = [tuple(column_values.values())]
+    placeholders = ", ".join("?" * len(column_values.keys()))
+    cursor.executemany(
+        f"INSERT INTO {table} "
+        f"({columns}) "
+        f"VALUES ({placeholders})",
+        values)
+    conn.commit()
 
 
-def fetchall(table, columns):
-    pass
+def fetchall(table: str, columns: List[str]):
+    all_columns = ', '.join(columns)
+    cursor.execute(f"SELECT {all_columns} FROM {table}")
+    rows = cursor.fetchall()
+    result = []
+    for row in rows:
+        dict_row = {}
+        for index, column in enumerate(columns):
+            dict_row[column] = row[index]
+        result.append(dict_row)
+    return result
 
 
 def delete(table, row_id):
-    pass
+    row_id = int(row_id)
+    cursor.execute(f"DELETE FROM {table} WHERE {table[:len(table)-1]}_id={row_id}")
+    conn.commit()
 
 
 def get_cursor():
@@ -32,7 +52,7 @@ def _init_db():
 
 
 def check_db_exists():
-    """Проверяет, инициализирована ли БД, если нет — инициализирует"""
+    """Check DB"""
     cursor.execute("SELECT name FROM sqlite_master "
                    "WHERE type='table' AND name='workouts'")
     table_exists = cursor.fetchall()

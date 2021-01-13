@@ -1,3 +1,6 @@
 .env
 venv/
 .idea/
+workout.db
+draft.py
+__pycache__/
