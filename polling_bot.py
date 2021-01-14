@@ -4,7 +4,8 @@ import os
 from aiogram import Bot, Dispatcher, executor, types
 from dotenv import load_dotenv
 
-from workouts import Workouts, MusclesGroups
+import services
+from workouts import Workouts, MusclesGroups, Exercises, Users
 
 load_dotenv()
 # Get token from .env file.
@@ -15,24 +16,62 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
+
 # Get groups of muscles for choice of workout type.
-muscles_groups = '\n'.join(tuple(str(group.get('group_name')) for group in MusclesGroups.load_groups()))
+muscles_groups = MusclesGroups.load_groups()
+muscles_group_names = list(group.get('group_name') for group in muscles_groups)
+muscles_group_id = list(group.get('group_id') for group in muscles_groups)
+
+# Get all exercises for handler
+all_exercises = Exercises.load_all_exercises()
+all_exercises_names = list(ex.get('exercise_name') for ex in all_exercises)
+all_exercises_id = list(ex.get('exercise_id') for ex in all_exercises)
 
 
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     """Send greeting and help"""
-    await message.answer("Hello!")
+    await message.answer("Приветствую в тренировочном дневнике!")
 
 
 @dp.message_handler(commands=['new'])
 async def today_statistics(message: types.Message):
-    """Add new workout"""
-    new_workout = Workouts(message.from_user.id)
-    new_workout.add_new_workout()
+    """Add new workout and new user if not exist"""
+    user_id = message.from_user.id
+    user_ids = services.get_all_user_ids()
+    user_condition = 0
+    if user_id not in user_ids:
+        user = Users(user_id)
 
-    answer_message = f"Добавлена новая тренировка\nВыберите группу мышц\n{muscles_groups}"
-    await message.answer(answer_message)
+    new_workout = Workouts(user_id)
+    new_workout.add_new_workout()
+    markup = services.generate_markup(muscles_group_names)
+    answer_message = f"Добавлена новая тренировка\nВыберите группу мышц"
+    await message.answer(answer_message, reply_markup=markup)
+
+
+@dp.message_handler(commands=muscles_group_names)
+async def send_welcome(message: types.Message):
+    group_name = message.text[1:]
+    group_id = muscles_group_id[muscles_group_names.index(group_name)]
+    exercise_names = services.generate_next_exercise(int(group_id))
+    markup = services.generate_markup(exercise_names)
+    await message.answer(f"Ну ок, {group_name}. Укажите упражение.", reply_markup=markup)
+
+
+@dp.message_handler(commands=all_exercises_names)
+async def send_welcome(message: types.Message):
+    exercise_name = message.text[1:]
+    await message.answer(f"Ну ок, {exercise_name}. Погнали!")
+
+
+@dp.message_handler(commands=['next'])
+async def send_welcome(message: types.Message):
+    # необходимо получить group_id предыдущего упражнения
+    group_id = 1
+    exercise_names = services.generate_next_exercise(int(group_id))
+    markup = services.generate_markup(exercise_names)
+    await message.answer("Ок, выберите следующее упражнение", reply_markup=markup)
 
 
 if __name__ == '__main__':

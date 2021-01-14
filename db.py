@@ -23,6 +23,22 @@ def insert(table: str, column_values: Dict):
 def fetchall(table: str, columns: List[str]):
     all_columns = ', '.join(columns)
     cursor.execute(f"SELECT {all_columns} FROM {table}")
+    return _generate_result(columns)
+
+
+def filtered_select(table: str, columns: List[str], filter_column: str, filter_value):
+    all_columns = ', '.join(columns)
+    cursor.execute(f"SELECT {all_columns} FROM {table} WHERE {filter_column} = {filter_value}")
+    return _generate_result(columns)
+
+
+def delete(table: str, row_id):
+    row_id = int(row_id)
+    cursor.execute(f"DELETE FROM {table} WHERE {table[:len(table)-1]}_id={row_id}")
+    conn.commit()
+
+
+def _generate_result(columns):
     rows = cursor.fetchall()
     result = []
     for row in rows:
@@ -31,12 +47,6 @@ def fetchall(table: str, columns: List[str]):
             dict_row[column] = row[index]
         result.append(dict_row)
     return result
-
-
-def delete(table, row_id):
-    row_id = int(row_id)
-    cursor.execute(f"DELETE FROM {table} WHERE {table[:len(table)-1]}_id={row_id}")
-    conn.commit()
 
 
 def get_cursor():

@@ -6,6 +6,29 @@ from uuid import uuid4
 import db
 
 
+class User(NamedTuple):
+    """
+    Описание объекта Пользователь. Пользователь может находиться в состоянии 0 или
+    в состоянии, равном идентификатору упражнения.
+    """
+    user_id: int
+    condition: int
+
+
+class Users:
+    def __init__(self, user_id, user_condition=0):
+        self.user = User(user_id, user_condition)
+        self.add_new_user()
+
+    def add_new_user(self):
+        db.insert("users", self.user._asdict())
+
+    @staticmethod
+    def load_all_users():
+        users = db.fetchall("users", ["user_id", "condition"])
+        return users
+
+
 class Workout(NamedTuple):
     """Описание объекта Тренировка"""
     workout_id: str
@@ -45,14 +68,30 @@ class Workouts:
 class Exercise(NamedTuple):
     """Описание объекта Упражнение"""
     exercise_id: str
-    name: str
+    exercise_name: str
     group_id: int
     english_name: str
     video: str
 
 
 class Exercises:
-    pass
+    def __init__(self, group_id: int):
+        self.group_id = group_id
+
+    def get_exercises(self):
+        return self._load_exercises()
+
+    def _load_exercises(self):
+        self.all_exercises = db.filtered_select("exercises",
+                                                ["exercise_id", "exercise_name", "group_id"],
+                                                "group_id",
+                                                self.group_id)
+        return self.all_exercises
+
+    @staticmethod
+    def load_all_exercises():
+        exercises = db.fetchall("exercises", ["exercise_id", "exercise_name"])
+        return exercises
 
 
 class MusclesGroup:
@@ -65,7 +104,7 @@ class MusclesGroup:
 class MusclesGroups:
     @staticmethod
     def load_groups():
-        groups = db.fetchall("groups", ["group_name"])
+        groups = db.fetchall("groups", ["group_id", "group_name"])
         return groups
 
 
