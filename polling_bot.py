@@ -39,12 +39,13 @@ async def today_statistics(message: types.Message):
     """Add new workout and new user if not exist"""
     user_id = message.from_user.id
     user_ids = services.get_all_user_ids()
-    user_condition = 0
     if user_id not in user_ids:
         user = Users(user_id)
+        user.add_new_user()
 
     new_workout = Workouts(user_id)
     new_workout.add_new_workout()
+
     markup = services.generate_markup(muscles_group_names)
     answer_message = f"Добавлена новая тренировка\nВыберите группу мышц"
     await message.answer(answer_message, reply_markup=markup)
@@ -62,16 +63,29 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=all_exercises_names)
 async def send_welcome(message: types.Message):
     exercise_name = message.text[1:]
+    exc = Exercises()
+    exc_id = [ex.get('exercise_id') for ex in exc.get_exercise_by_name(exercise_name)][0]
+    # меняем статус пользователя на текущее упражнение
+    Users.set_user_status(message.from_user.id, exc_id)
     await message.answer(f"Ну ок, {exercise_name}. Погнали!")
 
 
 @dp.message_handler(commands=['next'])
 async def send_welcome(message: types.Message):
-    # необходимо получить group_id предыдущего упражнения
-    group_id = 1
+    user = Users.get_user_status(message.from_user.id)
+    user_status = user[0].get('status')
+    exc = Exercises()
+    group_id = [ex.get('group_id') for ex in exc.get_exercise_by_id(user_status)][0]
     exercise_names = services.generate_next_exercise(int(group_id))
     markup = services.generate_markup(exercise_names)
     await message.answer("Ок, выберите следующее упражнение", reply_markup=markup)
+
+
+@dp.message_handler(commands=['end'])
+async def send_welcome(message: types.Message):
+    # TODO сделать обновление полей времени в Exercise
+    Users.set_user_status(message.from_user.id, 0)
+    await message.answer("Отлично потренировались!")
 
 
 if __name__ == '__main__':

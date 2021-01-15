@@ -1,5 +1,5 @@
 import db
-from workouts import User, Users
+from workouts import Users
 
 # check insert
 table = "users"

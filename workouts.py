@@ -12,20 +12,27 @@ class User(NamedTuple):
     в состоянии, равном идентификатору упражнения.
     """
     user_id: int
-    condition: int
+    status: int
 
 
 class Users:
-    def __init__(self, user_id, user_condition=0):
-        self.user = User(user_id, user_condition)
-        self.add_new_user()
+    def __init__(self, user_id, status=0):
+        self.user = User(user_id, status)
 
     def add_new_user(self):
         db.insert("users", self.user._asdict())
 
     @staticmethod
+    def get_user_status(user_id):
+        return db.filtered_select("users", ["status"], "user_id", user_id)
+
+    @staticmethod
+    def set_user_status(user_id, new_status):
+        db.update_one("users", "status", new_status, "user_id", user_id)
+
+    @staticmethod
     def load_all_users():
-        users = db.fetchall("users", ["user_id", "condition"])
+        users = db.fetchall("users", ["user_id", "status"])
         return users
 
 
@@ -75,23 +82,29 @@ class Exercise(NamedTuple):
 
 
 class Exercises:
-    def __init__(self, group_id: int):
-        self.group_id = group_id
+    def __init__(self):
+        self.test = 123
 
-    def get_exercises(self):
-        return self._load_exercises()
+    def get_exercise_by_id(self, exercise_id: int):
+        return self._get_filtered_data("exercise_id", exercise_id)
 
-    def _load_exercises(self):
-        self.all_exercises = db.filtered_select("exercises",
-                                                ["exercise_id", "exercise_name", "group_id"],
-                                                "group_id",
-                                                self.group_id)
-        return self.all_exercises
+    def get_exercise_by_name(self, exercise_name: str):
+        return self._get_filtered_data("exercise_name", exercise_name)
+
+    def get_all_exercises_by_group(self, group_id: int):
+        return self._get_filtered_data("group_id", group_id)
 
     @staticmethod
     def load_all_exercises():
         exercises = db.fetchall("exercises", ["exercise_id", "exercise_name"])
         return exercises
+
+    def _get_filtered_data(self, filter_column: str, filter_value):
+        self.all_exercises = db.filtered_select("exercises",
+                                                ["exercise_id", "exercise_name", "group_id"],
+                                                filter_column,
+                                                filter_value)
+        return self.all_exercises
 
 
 class MusclesGroup:
@@ -129,3 +142,5 @@ class Sets:
                           self.exercise_id,
                           self.weight,
                           self.reps)
+        # TODO реализация логики добавления подходов в БД
+        # TODO реализация логики удаления подходов в БД

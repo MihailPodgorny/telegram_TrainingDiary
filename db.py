@@ -28,8 +28,21 @@ def fetchall(table: str, columns: List[str]):
 
 def filtered_select(table: str, columns: List[str], filter_column: str, filter_value):
     all_columns = ', '.join(columns)
+    if isinstance(filter_value, str):
+        filter_value = f"'{filter_value}'"
+    print(f"SELECT {all_columns} FROM {table} WHERE {filter_column} = {filter_value}")
     cursor.execute(f"SELECT {all_columns} FROM {table} WHERE {filter_column} = {filter_value}")
     return _generate_result(columns)
+
+
+def update_one(table: str, column: str, value, filter_column: str, filter_value):
+    cursor.execute(
+        f"UPDATE {table} "
+        f"SET {column} = {value} "
+        f"WHERE {filter_column} = {filter_value}")
+    conn.commit()
+
+# TODO сделать update для нескольких полей
 
 
 def delete(table: str, row_id):
