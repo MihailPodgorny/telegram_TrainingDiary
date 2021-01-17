@@ -1,6 +1,7 @@
 CREATE TABLE users (
     user_id INTEGER PRIMARY KEY,
-    status INTEGER
+    status INTEGER,
+    load INTEGER
 );
 
 CREATE TABLE  workouts (

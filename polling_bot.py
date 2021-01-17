@@ -1,11 +1,12 @@
 import logging
 import os
+import re
 
 from aiogram import Bot, Dispatcher, executor, types
 from dotenv import load_dotenv
 
 import services
-from workouts import Workouts, MusclesGroups, Exercises, Users
+from workouts import Workouts, MusclesGroups, Exercises, Users, Sets
 
 load_dotenv()
 # Get token from .env file.
@@ -67,18 +68,36 @@ async def send_welcome(message: types.Message):
     exc_id = [ex.get('exercise_id') for ex in exc.get_exercise_by_name(exercise_name)][0]
     # меняем статус пользователя на текущее упражнение
     Users.set_user_status(message.from_user.id, exc_id)
-    await message.answer(f"Ну ок, {exercise_name}. Погнали!")
+    await message.answer(f"Погнали! Необходимо указать вес и число повторений.")
 
 
 @dp.message_handler(commands=['next'])
 async def send_welcome(message: types.Message):
-    user = Users.get_user_status(message.from_user.id)
+    user = Users.get_user_params(message.from_user.id)
     user_status = user[0].get('status')
     exc = Exercises()
     group_id = [ex.get('group_id') for ex in exc.get_exercise_by_id(user_status)][0]
     exercise_names = services.generate_next_exercise(int(group_id))
     markup = services.generate_markup(exercise_names)
     await message.answer("Ок, выберите следующее упражнение", reply_markup=markup)
+
+
+@dp.message_handler(regexp=r"^\s*(\d+)\s*(\d*)\s*")
+async def send_welcome(message: types.Message):
+    regexp_result = re.match(r"^\s*(\d+)\s*(\d*)\s*", message.text)
+    weight = regexp_result.group(1)
+    reps = regexp_result.group(2)
+    # id упражениния равно текущему статусу пользователя
+    user_id = message.from_user.id
+    user = Users.get_user_params(user_id)
+    exercise_id = user[0].get('status')
+    print(f"вес={weight}, повторы = {reps}.")
+    if not reps.isdigit():
+        reps = weight
+        weight = user[0].get('load')
+    Sets(user_id, exercise_id, weight, reps)
+    Users.set_user_load(message.from_user.id, weight)
+    await message.answer(f"Добавлено: {weight} кг на {reps} повт.")
 
 
 @dp.message_handler(commands=['end'])

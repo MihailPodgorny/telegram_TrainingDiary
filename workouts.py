@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import operator
 from typing import NamedTuple
 from uuid import uuid4
 
@@ -10,25 +11,31 @@ class User(NamedTuple):
     """
     Описание объекта Пользователь. Пользователь может находиться в состоянии 0 или
     в состоянии, равном идентификатору упражнения.
+    Нагрузка равна весу в текущем упраженении или 0.
     """
     user_id: int
     status: int
+    load: int
 
 
 class Users:
-    def __init__(self, user_id, status=0):
-        self.user = User(user_id, status)
+    def __init__(self, user_id, status=0, load=0):
+        self.user = User(user_id, status, load)
 
     def add_new_user(self):
         db.insert("users", self.user._asdict())
 
     @staticmethod
-    def get_user_status(user_id):
-        return db.filtered_select("users", ["status"], "user_id", user_id)
+    def get_user_params(user_id):
+        return db.filtered_select("users", ["status", "load"], "user_id", user_id)
 
     @staticmethod
     def set_user_status(user_id, new_status):
         db.update_one("users", "status", new_status, "user_id", user_id)
+
+    @staticmethod
+    def set_user_load(user_id, new_load):
+        db.update_one("users", "load", new_load, "user_id", user_id)
 
     @staticmethod
     def load_all_users():
@@ -70,6 +77,15 @@ class Workouts:
 
     def add_new_workout(self):
         db.insert("workouts", self.workout._asdict())
+
+    @staticmethod
+    def get_workout_by_user_id(user_id: int):
+        all_workouts = db.filtered_select("workouts",
+                                          ["workout_id", "user_id", "start_time"],
+                                          "user_id",
+                                          user_id)
+
+        return all_workouts
 
 
 class Exercise(NamedTuple):
@@ -124,23 +140,35 @@ class MusclesGroups:
 class OneSet(NamedTuple):
     """Описание объекта Подход"""
     set_id: str
-    workout_id: int
+    workout_id: str
     exercise_id: int
     weight: int
     reps: int
 
 
 class Sets:
-    def __init__(self, workout_id, exercise_id):
+    def __init__(self, user_id, exercise_id, weight, reps):
         self.set_id = str(uuid4())
-        self.workout_id = workout_id
+        self.workout_id = (max(Workouts.get_workout_by_user_id(user_id),
+                               key=operator.itemgetter('start_time')))['workout_id']
         self.exercise_id = exercise_id
-        self.weight = 0
-        self.reps = 0
-        self.set = OneSet(self.set_id,
-                          self.workout_id,
-                          self.exercise_id,
-                          self.weight,
-                          self.reps)
-        # TODO реализация логики добавления подходов в БД
-        # TODO реализация логики удаления подходов в БД
+        self.weight = weight
+        self.reps = reps
+        self.one_set = OneSet(self.set_id,
+                              self.workout_id,
+                              self.exercise_id,
+                              self.weight,
+                              self.reps)
+        self._add_new_set()
+
+    def __str__(self):
+        return f"OneSet: {self.set_id}"
+
+    def __repr__(self):
+        return f"OneSet: {self.set_id}"
+
+    def _add_new_set(self):
+        db.insert("sets", self.one_set._asdict())
+
+    def delete_set(self):
+        pass
