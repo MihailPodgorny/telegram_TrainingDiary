@@ -1,7 +1,9 @@
 # import os
 import sqlite3
-from typing import Dict, List
+from typing import Dict, List, Any
 
+# TODO сделать logging вместо print
+# TODO  сделать единую точку входа в модуль
 
 # conn = sqlite3.connect(os.path.join("workout.db"))
 conn = sqlite3.connect("workout.db")
@@ -36,13 +38,25 @@ def filtered_select(table: str, columns: List[str], filter_column: str, filter_v
 
 
 def update_one(table: str, column: str, value, filter_column: str, filter_value):
+    if isinstance(filter_value, str):
+        filter_value = f"'{filter_value}'"
     cursor.execute(
         f"UPDATE {table} "
         f"SET {column} = {value} "
         f"WHERE {filter_column} = {filter_value}")
     conn.commit()
 
-# TODO сделать update для нескольких полей
+
+def update_all(table: str,  column_values: Dict, filter_column: str, filter_value):
+    filter_value = _check_input_type(filter_value)
+    _s = []
+    [_s.append(f"{str(key)} = {_check_input_type(column_values[key])}") for key in column_values.keys()]
+    values = ", ".join(_s)
+    cursor.execute(
+        f"UPDATE {table} "
+        f"SET {values} "
+        f"WHERE {filter_column} = {filter_value}")
+    conn.commit()
 
 
 def delete(table: str, row_id):
@@ -60,6 +74,12 @@ def _generate_result(columns):
             dict_row[column] = row[index]
         result.append(dict_row)
     return result
+
+
+def _check_input_type(value: Any):
+    if isinstance(value, str):
+        value = f"'{value}'"
+    return value
 
 
 def get_cursor():

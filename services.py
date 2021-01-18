@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 from aiogram import types
@@ -25,4 +26,9 @@ def get_all_user_ids():
     user_ids = list(user.get('user_id') for user in users)
     return user_ids
 
-# TODO сделать парсинг сообщений
+
+def parse_message(text: str):
+    regexp_result = re.match(r"^\s*(\d+)\s*(\d*)\s*", text)
+    weight = regexp_result.group(1)
+    reps = regexp_result.group(2)
+    return weight, reps

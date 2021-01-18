@@ -57,9 +57,9 @@ class Workouts:
     def __init__(self, user_id):
         self.workout_id = str(uuid4())
         self.user_id = user_id
-        self.date_ = datetime.now().strftime('%Y.%m.%d ')
+        self.date_ = datetime.now().strftime('%Y.%m.%d')
         self.start_time = datetime.now().strftime('%H:%M')
-        self.end_time = (datetime.now()+timedelta(minutes=2)).strftime('%H:%M')
+        self.end_time = ''
         self.total_time = 0
         self.workout = Workout(self.workout_id,
                                self.user_id,
@@ -81,10 +81,26 @@ class Workouts:
     @staticmethod
     def get_workout_by_user_id(user_id: int):
         all_workouts = db.filtered_select("workouts",
-                                          ["workout_id", "user_id", "start_time"],
+                                          ["workout_id", "user_id", "start_time", "date_"],
                                           "user_id",
                                           user_id)
 
+        return all_workouts
+
+    @staticmethod
+    def end_workout_by_user_id(user_id: int):
+        last_workout = max(Workouts.get_workout_by_user_id(user_id), key=operator.itemgetter('start_time'))
+        workout_id = last_workout['workout_id']
+        date_ = last_workout['date_']
+        time_ = last_workout['start_time']
+        start_time = datetime.strptime(f"{date_} {time_}", "%Y.%m.%d %H:%M")
+        end_time = datetime.now()
+        total_time = (end_time-start_time).total_seconds()//60
+        end_workout = {
+            'end_time': end_time.strftime('%H:%M'),
+            'total_time': total_time
+        }
+        all_workouts = db.update_all("workouts", end_workout, "workout_id", workout_id)
         return all_workouts
 
 
@@ -98,9 +114,6 @@ class Exercise(NamedTuple):
 
 
 class Exercises:
-    def __init__(self):
-        self.test = 123
-
     def get_exercise_by_id(self, exercise_id: int):
         return self._get_filtered_data("exercise_id", exercise_id)
 
