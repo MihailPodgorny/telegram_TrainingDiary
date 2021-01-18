@@ -9,9 +9,9 @@ API_TOKEN_TELEGRAM=xxxx:XXXXXXXXXXXXXXX
 ```
 docker build -t tg_workout_diary ./
 ```
-В следующей команде запуска контейнера необходимо заменить `local_project_path` на локальный путь проекта:
+В следующей команде запуска контейнера необходимо заменить `<../telegram_TrainingDiary>` на абсолютный путь к проекту:
 ```
-docker run -d --name tgwd -v /local_project_name/docker_db:/home/docker_db tg_workout_diary
+docker run -d --name tgwd -v <../telegram_TrainingDiary>:/home tg_workout_diary
 ```
 Чтобы войти в bash работающего контейнера:
 ```
