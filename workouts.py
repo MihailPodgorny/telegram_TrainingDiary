@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import operator
 from typing import NamedTuple
 from uuid import uuid4
@@ -11,7 +11,7 @@ class User(NamedTuple):
     """
     Описание объекта Пользователь. Пользователь может находиться в состоянии 0 или
     в состоянии, равном идентификатору упражнения.
-    Нагрузка равна весу в текущем упраженении или 0.
+    Нагрузка равна весу в текущем упражнении или 0.
     """
     user_id: int
     status: int

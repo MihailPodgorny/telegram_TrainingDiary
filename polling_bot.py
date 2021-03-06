@@ -104,11 +104,11 @@ async def send_welcome(message: types.Message):
 
 
 # TODO добавить скрытие клавиатуры
-# TODO при вводе показывать статистику по упражнению в срвнении с прошлой тренировкой
+# TODO при вводе показывать статистику по упражнению в сравнении с прошлой тренировкой
 @dp.message_handler(regexp=r"^\s*(\d+)\s*(\d*)\s*")
 async def send_welcome(message: types.Message):
     weight, reps = services.parse_message(message.text)
-    # id упражениния равно текущему статусу пользователя
+    # id упражнения равно текущему статусу пользователя
     user_id = message.from_user.id
     try:
         user = Users.get_user_params(user_id)
