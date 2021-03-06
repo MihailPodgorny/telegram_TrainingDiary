@@ -42,6 +42,10 @@ class Users:
         users = db.fetchall("users", ["user_id", "status"])
         return users
 
+    @staticmethod
+    def delete_user(user_id):
+        db.delete("users", user_id)
+
 
 class Workout(NamedTuple):
     """Описание объекта Тренировка"""
