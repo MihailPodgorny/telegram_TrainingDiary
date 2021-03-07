@@ -107,6 +107,10 @@ class Workouts:
         all_workouts = db.update_all("workouts", end_workout, "workout_id", workout_id)
         return all_workouts
 
+    @staticmethod
+    def delete_workout_by_user_id(user_id):
+        db.delete_by_user_id("workouts", user_id)
+
 
 class Exercise(NamedTuple):
     """Описание объекта Упражнение"""

@@ -1,16 +1,14 @@
-from workouts import Users
+from workouts import Users, Workouts, Workout
 
 
 class TestUsersFunctions:
-    @classmethod
-    def setup(self):
+    def setup_class(self):
         self.id = 111
         self.status = 0
         self.load = 40
         self.user = Users(self.id, self.status, self.load)
 
-    @classmethod
-    def teardown(self):
+    def teardown_class(self):
         self.user.delete_user(self.id)
 
     def test_add_new_user_and_load_all_users(self):
@@ -38,4 +36,17 @@ class TestUsersFunctions:
     def test_delete_user(self):
         self.user.delete_user(self.id)
 
+
+class TestWorkoutsFunctions:
+    def setup_class(self):
+        self.user_id = 111
+        self.workout = Workouts(self.user_id)
+        self.workout.add_new_workout()
+
+    def teardown_class(self):
+        Workouts.delete_workout_by_user_id(self.user_id)
+
+    def test_get_workout_by_user_id(self):
+        all_wo = Workouts.get_workout_by_user_id(self.user_id)
+        assert all_wo[0]['user_id'] == 111
 

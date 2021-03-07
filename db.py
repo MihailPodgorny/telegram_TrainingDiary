@@ -65,6 +65,11 @@ def delete(table: str, row_id):
     conn.commit()
 
 
+def delete_by_user_id(table: str, user_id: int):
+    cursor.execute(f"DELETE FROM {table} WHERE user_id={user_id}")
+    conn.commit()
+
+
 def _generate_result(columns):
     rows = cursor.fetchall()
     result = []

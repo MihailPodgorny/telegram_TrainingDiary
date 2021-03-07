@@ -75,7 +75,7 @@ async def send_welcome(message: types.Message):
     group_id = muscles_group_id[muscles_group_names.index(group_name)]
     exercise_names = services.generate_next_exercise(int(group_id))
     markup = services.generate_markup(exercise_names)
-    await message.answer(f"Ну ок, {group_name}. Выберите упражение:", reply_markup=markup)
+    await message.answer(f"Ну ок, {group_name}. Выберите упражнение:", reply_markup=markup)
 
 
 @dp.message_handler(commands=all_exercises_names)

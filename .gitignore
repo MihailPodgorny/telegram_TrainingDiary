@@ -1,8 +1,13 @@
-.env
 venv/
 .idea/
+.env
+
 workout.db
 draft.py
 __pycache__/
 docker_db/
 db-diagram.jpg
+
+
+.coverage
+.pytest_cache/
