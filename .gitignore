@@ -3,6 +3,7 @@ venv/
 .env
 
 workout.db
+workout_new.db
 draft.py
 __pycache__/
 docker_db/

@@ -85,7 +85,7 @@ class Workouts:
     @staticmethod
     def get_workout_by_user_id(user_id: int):
         all_workouts = db.filtered_select("workouts",
-                                          ["workout_id", "user_id", "start_time", "date_"],
+                                          ["workout_id", "user_id", "date_", "start_time", "end_time", "total_time"],
                                           "user_id",
                                           user_id)
 
@@ -191,5 +191,6 @@ class Sets:
     def _add_new_set(self):
         db.insert("sets", self.one_set._asdict())
 
-    def delete_set(self):
-        pass
+    @staticmethod
+    def delete_set_by_user_id(user_id):
+        db.delete_by_user_id("sets", user_id)

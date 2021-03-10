@@ -1,112 +1,75 @@
-# import os
-import sqlite3
-from typing import Dict, List, Any
-
-# TODO сделать logging вместо print
-# TODO  сделать единую точку входа в модуль
-
-# conn = sqlite3.connect(os.path.join("workout.db"))
-conn = sqlite3.connect("workout.db")
-cursor = conn.cursor()
+from sqlalchemy import create_engine, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import load_only
 
 
-def insert(table: str, column_values: Dict):
-    columns = ', '.join(column_values.keys())
-    values = [tuple(column_values.values())]
-    placeholders = ", ".join("?" * len(column_values.keys()))
-    cursor.executemany(
-        f"INSERT INTO {table} "
-        f"({columns}) "
-        f"VALUES ({placeholders})",
-        values)
-    conn.commit()
+engine = create_engine('sqlite:///workouts.db', echo=True)
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
-def fetchall(table: str, columns: List[str]):
-    all_columns = ', '.join(columns)
-    cursor.execute(f"SELECT {all_columns} FROM {table}")
-    return _generate_result(columns)
+def create(model):
+    session.add(model)
+    session.commit()
 
 
-def filtered_select(table: str, columns: List[str], filter_column: str, filter_value):
-    all_columns = ', '.join(columns)
-    if isinstance(filter_value, str):
-        filter_value = f"'{filter_value}'"
-    print(f"SELECT {all_columns} FROM {table} WHERE {filter_column} = {filter_value}")
-    cursor.execute(f"SELECT {all_columns} FROM {table} WHERE {filter_column} = {filter_value}")
-    return _generate_result(columns)
+def get_by_id(model, pk):
+    item = session.query(model).get(pk)
+    return item
 
 
-def update_one(table: str, column: str, value, filter_column: str, filter_value):
-    if isinstance(filter_value, str):
-        filter_value = f"'{filter_value}'"
-    cursor.execute(
-        f"UPDATE {table} "
-        f"SET {column} = {value} "
-        f"WHERE {filter_column} = {filter_value}")
-    conn.commit()
+def get_id_by_name(model, name):
+    query = session.query(model).filter(model.name == name).first()
+    return query.id
 
 
-def update_all(table: str,  column_values: Dict, filter_column: str, filter_value):
-    filter_value = _check_input_type(filter_value)
-    _s = []
-    [_s.append(f"{str(key)} = {_check_input_type(column_values[key])}") for key in column_values.keys()]
-    values = ", ".join(_s)
-    cursor.execute(
-        f"UPDATE {table} "
-        f"SET {values} "
-        f"WHERE {filter_column} = {filter_value}")
-    conn.commit()
+def get_user_id_by_chat(model, chat):
+    query = session.query(model).filter(model.chat == chat).first()
+    return query.id
 
 
-def delete(table: str, row_id):
-    row_id = int(row_id)
-    cursor.execute(f"DELETE FROM {table} WHERE {table[:len(table)-1]}_id={row_id}")
-    conn.commit()
+def get_user_state_by_chat(model, chat):
+    query = session.query(model).filter(model.chat == chat).first()
+    return query.state
 
 
-def delete_by_user_id(table: str, user_id: int):
-    cursor.execute(f"DELETE FROM {table} WHERE user_id={user_id}")
-    conn.commit()
+def get_user_load_by_chat(model, chat):
+    query = session.query(model).filter(model.chat == chat).first()
+    return query.load
 
 
-def _generate_result(columns):
-    rows = cursor.fetchall()
-    result = []
-    for row in rows:
-        dict_row = {}
-        for index, column in enumerate(columns):
-            dict_row[column] = row[index]
-        result.append(dict_row)
-    return result
+def get_all_data(model, columns=None):
+    if columns is None:
+        query = session.query(model).all()
+    else:
+        query = session.query(model).options(load_only(*columns)).all()
+    return query
 
 
-def _check_input_type(value: Any):
-    if isinstance(value, str):
-        value = f"'{value}'"
-    return value
+def get_last_workout(model, user_id):
+    query = session.query(model).filter(model.user_id == user_id).order_by(model.start_time.desc()).first()
+    return query.id, query.date_now, query.start_time
 
 
-def get_cursor():
-    return cursor
+def delete(model, pk):
+    del_item = session.query(model).get(pk)
+    session.delete(del_item)
+    session.commit()
 
 
-def _init_db():
-    """Initializing the database"""
-    with open("create_db.sql", "r") as f:
-        sql = f.read()
-    cursor.executescript(sql)
-    conn.commit()
+def get_all_data_by_group_id(model, group_id):
+    query = session.query(model).filter(model.group_id == group_id)
+    return query
 
 
-def check_db_exists():
-    """Check DB"""
-    cursor.execute("SELECT name FROM sqlite_master "
-                   "WHERE type='table' AND name='workouts'")
-    table_exists = cursor.fetchall()
-    if table_exists:
-        return
-    _init_db()
+def update_user_state_and_load_by_chat_id(model, chat_id, state, load):
+    session.query(model).filter(model.chat == chat_id).update({'state': state, 'load': load})
+    session.commit()
 
 
-check_db_exists()
+def update_workout_by_id(model, workout_id, end_time, total_time):
+    session.query(model).filter(model.id == workout_id).update(
+        {'end_time': end_time, 'total_time': total_time})
+    session.commit()

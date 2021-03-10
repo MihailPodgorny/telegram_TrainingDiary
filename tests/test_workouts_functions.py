@@ -1,4 +1,6 @@
-from workouts import Users, Workouts, Workout
+import operator
+
+from workouts import Users, Workouts, Workout, Exercises, Sets
 
 
 class TestUsersFunctions:
@@ -47,6 +49,34 @@ class TestWorkoutsFunctions:
         Workouts.delete_workout_by_user_id(self.user_id)
 
     def test_get_workout_by_user_id(self):
-        all_wo = Workouts.get_workout_by_user_id(self.user_id)
-        assert all_wo[0]['user_id'] == 111
+        new_workout = Workouts.get_workout_by_user_id(self.user_id)
+        assert new_workout[0]['user_id'] == 111
+
+    def test_end_workout_by_user_id(self):
+        last_workout = max(Workouts.get_workout_by_user_id(self.user_id),
+                           key=operator.itemgetter('start_time'))
+
+        assert last_workout is not None
+        Workouts.end_workout_by_user_id(self.user_id)
+        updated_workout = Workouts.get_workout_by_user_id(self.user_id)
+        assert updated_workout[0]['end_time']
+
+
+# class TestSetsExercisesFunctions:
+#     def setup_class(self):
+#         self.user_id = 111
+#         self.exercise_id = 2
+#         self.weight = 50
+#         self.reps = 12
+#         self.workout = Workouts(self.user_id)
+#         self.workout.add_new_workout()
+#         self.set = Sets(self.user_id, self.exercise_id, self.weight, self.reps)
+#
+#     def teardown_class(self):
+#         Sets.delete_set_by_user_id(self.user_id)
+#
+#     def test_get_exercise_by_id(self):
+#         exc = Exercises()
+#         result = exc.get_exercise_by_id(self.user_id)
+#         assert result == 2
 
