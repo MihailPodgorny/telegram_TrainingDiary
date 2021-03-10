@@ -54,8 +54,8 @@ def get_last_workout(model, user_id):
 
 
 def delete(model, pk):
-    del_item = session.query(model).get(pk)
-    session.delete(del_item)
+    item = session.query(model).get(pk)
+    session.delete(item)
     session.commit()
 
 

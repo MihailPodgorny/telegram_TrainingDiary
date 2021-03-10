@@ -6,7 +6,7 @@ from aiogram import types
 
 from db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
-    get_last_workout, update_workout_by_id, get_count
+    get_last_workout, update_workout_by_id, get_count, delete
 from models import Users, Exercises, MuscleGroups, Workouts, Sets
 from start_data import create_start_data
 
@@ -49,7 +49,7 @@ def get_weight_and_reps_from_message(text: str):
 
 
 def get_all_exercises_by_group_id(group_id: int):
-    """get all exercises particular group"""
+    """ get all exercises particular group_id """
     all_data = get_all_data_by_group_id(Exercises, group_id)
     all_exercises = []
     for exs in all_data:
@@ -58,6 +58,7 @@ def get_all_exercises_by_group_id(group_id: int):
 
 
 def get_all_exercises_by_group_name(group_name: str):
+    """ get all exercises by group name """
     group_id = get_id_by_name(MuscleGroups, group_name)
     return get_all_exercises_by_group_id(group_id)
 
@@ -69,7 +70,6 @@ def get_exercises_by_name(exercise_name: str):
 
 def get_all_exercise_data(exercise_id: int):
     exs = get_by_id(Exercises, exercise_id)
-    print(exs)
     return exs.name, exs.group_id, exs.original_name, exs.similar_name, exs.video_href
 
 
@@ -154,3 +154,8 @@ def create_new_set(chat_id: int, exercise_id: int, weight, reps):
 def for_new_db():
     if get_count(MuscleGroups) == 0:
         create_start_data()
+
+
+def delete_user(chat_id):
+    user_id = get_user_id_by_chat(Users, chat_id)
+    delete(Users, user_id)
