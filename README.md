@@ -25,6 +25,6 @@ docker stop tgwd
 docker rm tgwd
 ```
 Чтобы удалить образ:
-...
+```
 docker rmi tg_workout_diary
-...
+```
