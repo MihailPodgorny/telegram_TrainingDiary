@@ -8,6 +8,7 @@ API_TOKEN_TELEGRAM=xxxx:XXXXXXXXXXXXXXX
 Файл .env необходим также и при работе через docker!
 Для сборки образа контейнера необходимо выполнить.
 ```
+cd telegram_TrainingDiary
 docker build -t tg_workout_diary ./
 ```
 В следующей команде запуска контейнера необходимо заменить `<../telegram_TrainingDiary>` на абсолютный путь к проекту:
@@ -24,6 +25,6 @@ docker stop tgwd
 docker rm tgwd
 ```
 Чтобы удалить образ:
-у
+...
 docker rmi tg_workout_diary
 ```

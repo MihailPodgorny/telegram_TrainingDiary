@@ -6,8 +6,9 @@ from aiogram import types
 
 from db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
-    get_last_workout, update_workout_by_id
+    get_last_workout, update_workout_by_id, get_count
 from models import Users, Exercises, MuscleGroups, Workouts, Sets
+from start_data import create_start_data
 
 
 def generate_markup(buttons: List):
@@ -150,3 +151,6 @@ def create_new_set(chat_id: int, exercise_id: int, weight, reps):
                 reps=reps))
 
 
+def for_new_db():
+    if get_count(MuscleGroups) == 0:
+        create_start_data()

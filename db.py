@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import load_only
@@ -73,3 +73,8 @@ def update_workout_by_id(model, workout_id, end_time, total_time):
     session.query(model).filter(model.id == workout_id).update(
         {'end_time': end_time, 'total_time': total_time})
     session.commit()
+
+
+def get_count(model):
+    rows = session.query(model.id).count()
+    return rows

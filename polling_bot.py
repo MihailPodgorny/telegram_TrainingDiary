@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
+utils.for_new_db()
 
 HELP_TEXT = "Бот предназначен для ведения личного дневника тренировок,\n" \
             "что является одним из столпов в прогрессии роста результата.\n" \
