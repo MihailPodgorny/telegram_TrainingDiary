@@ -5,9 +5,7 @@ WORKDIR /home
 ENV TZ=Europe/Moscow
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY requirements.txt ./
+COPY requirements.txt *.py .env ./
 RUN pip install -U pip -r requirements.txt && apt-get update && apt-get install sqlite3
-COPY *.py ./
-COPY .env ./
 
 ENTRYPOINT ["python3", "polling_bot.py"]
