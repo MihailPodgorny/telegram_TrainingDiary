@@ -1,4 +1,5 @@
 import re
+import json
 from datetime import datetime
 from typing import List
 
@@ -8,14 +9,13 @@ from db import get_all_data, get_all_data_by_group_id, update_user_state_and_loa
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
     get_last_workout, update_workout_by_id, get_count, delete, get_last_set
 from models import Users, Exercises, MuscleGroups, Workouts, Sets
-from start_data import create_start_data
 
 
 def generate_markup(buttons: List):
     """ create keyboard in Telegram """
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     for button in buttons:
-        markup.add('/'+str(button))
+        markup.add('/' + str(button))
     return markup
 
 
@@ -29,19 +29,16 @@ def is_user_exist(chat_id: int):
 
 
 def get_user_state(chat_id: int):
-    """ get user state """
     user_state = get_user_state_by_chat(Users, chat_id)
     return user_state
 
 
 def get_user_load(chat_id: int):
-    """ get user load """
     user_load = get_user_load_by_chat(Users, chat_id)
     return user_load
 
 
 def get_weight_and_reps_from_message(text: str):
-    """get weight and reps in text message"""
     regexp_result = re.match(r"^\s*(\d+)\s*(\d*)\s*", text)
     weight = regexp_result.group(1)
     reps = regexp_result.group(2)
@@ -49,7 +46,6 @@ def get_weight_and_reps_from_message(text: str):
 
 
 def get_all_exercises_by_group_id(group_id: int):
-    """ get all exercises particular group_id """
     all_data = get_all_data_by_group_id(Exercises, group_id)
     all_exercises = []
     for exs in all_data:
@@ -95,7 +91,6 @@ def get_all_muscle_groups():
 
 
 def get_all_exercises():
-    """ get all exercises in database """
     all_data = get_all_data(Exercises)
     all_exercises = []
     for row in all_data:
@@ -103,23 +98,19 @@ def get_all_exercises():
     return all_exercises
 
 
-def nullify_user(chat_id: int):
-    """ update user with param state=0 and load=0 """
-    update_user_state_and_load_by_chat_id(Users, chat_id, 0, 0)
-
-
-def set_user_state(chat_id: int, state: int):
-    """ update user with param state and load=0 """
-    update_user_state_and_load_by_chat_id(Users, chat_id, state, 0)
-
-
 def set_user_state_and_load(chat_id: int, state: int, load: int):
-    """ update user with param state and load """
     update_user_state_and_load_by_chat_id(Users, chat_id, state, load)
 
 
+def set_user_state(chat_id: int, state: int):
+    update_user_state_and_load_by_chat_id(Users, chat_id, state, 0)
+
+
+def nullify_user(chat_id: int):
+    update_user_state_and_load_by_chat_id(Users, chat_id, 0, 0)
+
+
 def set_workout_end_time(chat_id: int):
-    """ update end_time and total_time in Workout """
     user_id = get_user_id_by_chat(Users, chat_id)
     workout_id, date_, time_ = get_last_workout(Workouts, user_id)
     start_date = datetime.combine(date_, time_)
@@ -130,30 +121,22 @@ def set_workout_end_time(chat_id: int):
 
 
 def create_new_user(chat_id: int):
-    """ create new user """
     create(Users(chat=chat_id))
 
 
 def create_new_workout(chat_id: int):
-    """ create new workout """
     user_id = get_user_id_by_chat(Users, chat_id)
     print(user_id)
     create(Workouts(user_id=user_id))
 
 
 def create_new_set(chat_id: int, exercise_id: int, weight, reps):
-    """ create new set """
     user_id = get_user_id_by_chat(Users, chat_id)
     workout_id = get_last_workout_id_by_user_id(user_id)
     create(Sets(workout_id=workout_id,
                 exercise_id=exercise_id,
                 weight=weight,
                 reps=reps))
-
-
-def for_new_db():
-    if get_count(MuscleGroups) == 0:
-        create_start_data()
 
 
 def delete_user(chat_id: int):
@@ -174,3 +157,24 @@ def delete_set(chat_id: int):
                 set_user_state_and_load(chat_id, prev_exercise_id, prev_weight)
             else:
                 nullify_user(chat_id)
+
+
+def is_new_db():
+    if not get_count(MuscleGroups):
+        with open('starting_data.json') as file:
+            data = json.load(file)
+        # TODO сделать валидацию данных
+        for table_name in data:
+            for row in data[table_name]:
+                if table_name == 'MuscleGroups':
+                    create(MuscleGroups(name=row.get('name', 'еще одна группа мышщ'),
+                                        text_href=row.get('text_href', '')))
+                elif table_name == 'Exercises':
+                    create(Exercises(name=row.get('name', 'еще одно упражение'),
+                                     group_id=get_id_by_name(MuscleGroups, row.get('group', 'прочее')) \
+                                              or get_id_by_name(MuscleGroups, 'прочее'),
+                                     original_name=row.get('original_name', 'еще одно упражение'),
+                                     similar_name=row.get('similar_name', ''),
+                                     video_href=row.get('video_href', '')))
+        return 'Initial data was loaded'
+    return 'Initial data was loaded earlier'

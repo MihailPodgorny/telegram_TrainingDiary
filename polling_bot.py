@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
-utils.for_new_db()
+utils.is_new_db()
 
 HELP_TEXT = "Бот предназначен для ведения личного дневника тренировок,\n" \
             "что является одним из столпов в прогрессии роста результата.\n" \
@@ -180,6 +180,8 @@ async def send_delete_last_rep(message: types.Message):
 
 # TODO добавить модуль статистики по тренировке /stat
 # TODO фильтр для перехвата флуда
+# TODO выгрузка всех данных пользователя в json-file
+# TODO добавить упражений
 
 
 if __name__ == '__main__':

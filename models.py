@@ -44,7 +44,7 @@ class Exercises(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     group_id = Column(Integer, ForeignKey('muscle_groups.id', ondelete="SET NULL"))
-    original_name = Column(String)
+    original_name = Column(String, default='', nullable=True)
     similar_name = Column(String, default='', nullable=True)
     video_href = Column(String, default='', nullable=True)
 
