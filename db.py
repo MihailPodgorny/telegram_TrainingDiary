@@ -49,8 +49,13 @@ def get_all_data(model, columns=None):
 
 
 def get_last_workout(model, user_id):
-    query = session.query(model).filter(model.user_id == user_id).order_by(model.start_time.desc()).first()
+    query = session.query(model).filter(model.user_id == user_id).order_by(model.id.desc()).first()
     return query.id, query.date_now, query.start_time
+
+
+def get_last_set(model, workout_id):
+    query = session.query(model).filter(model.workout_id == workout_id).order_by(model.id.desc()).first()
+    return query.id, query.workout_id, query.exercise_id, query.weight, query.reps
 
 
 def delete(model, pk):

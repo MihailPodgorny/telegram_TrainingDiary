@@ -23,6 +23,7 @@ HELP_TEXT = "Бот предназначен для ведения личног�
             "после выбора группы мышц и упражнения, следует указать вес и повторения;\n" \
             "например: 80 12\n" \
             "/next - для выбора следующего упражнения;\n" \
+            "/group - для выбора другой группы упражнений;\n" \
             "/end - закончить тренировку и сохранить статистику;\n" \
             "/help - для вызова помощи."
 
@@ -48,6 +49,7 @@ async def send_workout(message: types.Message):
     chat_id = message.from_user.id
     if utils.is_user_exist(chat_id):
         utils.nullify_user(chat_id)
+        # TODO проверка существования предыдущей тренировки и добавления условного часа
     else:
         utils.create_new_user(chat_id)
     utils.create_new_workout(chat_id)
@@ -59,7 +61,7 @@ async def send_workout(message: types.Message):
 @dp.message_handler(commands=MUSCLE_GROUPS)
 async def send_muscle_group(message: types.Message):
     """ Choose exercise in group """
-    """ """
+    # TODO проверка существования пользователя и тренировки
     group_name = message.text[1:]
     exercises = utils.get_all_exercises_by_group_name(group_name)
     markup = utils.generate_markup(exercises)
@@ -68,18 +70,27 @@ async def send_muscle_group(message: types.Message):
 
 @dp.message_handler(commands=ALL_EXERCISES)
 async def send_exercise(message: types.Message):
-    """ Get exercise name, set User.state = Exercise.id """
+    """
+    Get exercise name,
+    set User.state = Exercise.id
+    """
+    # TODO проверка существования пользователя и тренировки
     exercise_name = message.text[1:]
     user_chat = message.from_user.id
     exercise_id = utils.get_exercises_by_name(exercise_name)
     utils.set_user_state(user_chat, exercise_id)
     await message.answer(f"Погнали! Необходимо указать вес и число повторений.\n"
-                         "/next - для следующего упражнения")
+                         "/next - для следующего упражнения"
+                         "/group - для другой группы мышц.")
 
 
 @dp.message_handler(commands=['next'])
 async def send_next_exercise(message: types.Message):
-    """ Get user state and add new exercise """
+    """
+    Get user state,
+    add new exercise.
+    """
+    # TODO проверка существования пользователя и тренировки
     user_chat = message.from_user.id
     user_state = utils.get_user_state(user_chat)
     if not user_state:
@@ -94,9 +105,12 @@ async def send_next_exercise(message: types.Message):
 
 @dp.message_handler(commands=['group'])
 async def send_another_group(message: types.Message):
-    """ Check user state and add new group of exercises """
+    """
+    Check user state,
+    add new group of exercises
+    """
+    # TODO проверка существования пользователя и тренировки
     user_chat = message.from_user.id
-    print(user_chat)
     user_state = utils.get_user_state(user_chat)
     if not user_state:
         await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
@@ -112,9 +126,10 @@ async def send_another_group(message: types.Message):
 async def send_weight_and_reps(message: types.Message):
     """
     Get text message from user, get weight (arg_1) and reps(arg_2) from message.
-    If arg_2 is empty then reps = arg_2 and weight = User.load
-    Add new exercise set.
+    If arg_2 is empty then reps = arg_2 and weight = User.load,
+    add new exercise set.
     """
+    # TODO проверка существования тренировки
     chat_id = message.from_user.id
     if not utils.is_user_exist(chat_id):
         await message.answer(f"Похоже, Вы новый пользователь!\n"
@@ -138,15 +153,32 @@ async def send_weight_and_reps(message: types.Message):
 # TODO добавить скрытие клавиатуры
 @dp.message_handler(commands=['end'])
 async def send_end_workout(message: types.Message):
-    """ Nullify user.status and user.load, then update workout.time_end and total time """
+    """
+    Nullify user.status and user.load,
+    then update workout.time_end and total time
+    """
+    # TODO проверка существования пользователя, тренировки
     chat_id = message.from_user.id
     utils.nullify_user(chat_id)
     utils.set_workout_end_time(chat_id)
     await message.answer("Отлично потренировались!")
 
 
+@dp.message_handler(commands=['delete'])
+async def send_delete_last_rep(message: types.Message):
+    """
+    Delete last rep of exercise.
+    Update state = previous exercise
+    Update load = previous load of exercise
+    """
+    # TODO проверка существования пользователя, тренировки, подхода
+    # TODO проверка, что уже был удален подход ???
+    chat_id = message.from_user.id
+    utils.delete_set(chat_id)
+    await message.answer(f"Удален последний подход")
+
+
 # TODO добавить модуль статистики по тренировке /stat
-# TODO /delete для удаления последнего подхода
 # TODO фильтр для перехвата флуда
 
 
