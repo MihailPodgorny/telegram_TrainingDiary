@@ -92,6 +92,20 @@ async def send_next_exercise(message: types.Message):
         await message.answer("Ок, выберите следующее упражнение:", reply_markup=markup)
 
 
+@dp.message_handler(commands=['group'])
+async def send_another_group(message: types.Message):
+    """ Check user state and add new group of exercises """
+    user_chat = message.from_user.id
+    print(user_chat)
+    user_state = utils.get_user_state(user_chat)
+    if not user_state:
+        await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
+    else:
+        markup = utils.generate_markup(MUSCLE_GROUPS)
+        answer_message = f"Выберите другую группу мышц:"
+        await message.answer(answer_message, reply_markup=markup)
+
+
 # TODO добавить скрытие клавиатуры
 # TODO при вводе показывать статистику по упражнению в сравнении с прошлой тренировкой
 @dp.message_handler(regexp=r"^\s*(\d+)\s*(\d*)\s*")
@@ -133,7 +147,6 @@ async def send_end_workout(message: types.Message):
 
 # TODO добавить модуль статистики по тренировке /stat
 # TODO /delete для удаления последнего подхода
-# TODO /group для другой группы мышц
 # TODO фильтр для перехвата флуда
 
 
