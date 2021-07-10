@@ -37,13 +37,13 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(commands=['help'])
-async def send_welcome(message: types.Message):
+async def send_help(message: types.Message):
     """Send help"""
     await message.answer(HELP_TEXT)
 
 
 @dp.message_handler(commands=['new'])
-async def today_statistics(message: types.Message):
+async def send_workout(message: types.Message):
     """ Add new workout and new user if not exist """
     chat_id = message.from_user.id
     if utils.is_user_exist(chat_id):
@@ -57,7 +57,7 @@ async def today_statistics(message: types.Message):
 
 
 @dp.message_handler(commands=MUSCLE_GROUPS)
-async def send_welcome(message: types.Message):
+async def send_muscle_group(message: types.Message):
     """ Choose exercise in group """
     """ """
     group_name = message.text[1:]
@@ -67,7 +67,7 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(commands=ALL_EXERCISES)
-async def send_welcome(message: types.Message):
+async def send_exercise(message: types.Message):
     """ Get exercise name, set User.state = Exercise.id """
     exercise_name = message.text[1:]
     user_chat = message.from_user.id
@@ -78,11 +78,11 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(commands=['next'])
-async def send_welcome(message: types.Message):
+async def send_next_exercise(message: types.Message):
     """ Get user state and add new exercise """
     user_chat = message.from_user.id
     user_state = utils.get_user_state(user_chat)
-    if user_state == 0:
+    if not user_state:
         await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
     else:
         exercise_id = user_state
@@ -95,7 +95,7 @@ async def send_welcome(message: types.Message):
 # TODO добавить скрытие клавиатуры
 # TODO при вводе показывать статистику по упражнению в сравнении с прошлой тренировкой
 @dp.message_handler(regexp=r"^\s*(\d+)\s*(\d*)\s*")
-async def send_welcome(message: types.Message):
+async def send_weight_and_reps(message: types.Message):
     """
     Get text message from user, get weight (arg_1) and reps(arg_2) from message.
     If arg_2 is empty then reps = arg_2 and weight = User.load
@@ -106,7 +106,7 @@ async def send_welcome(message: types.Message):
         await message.answer(f"Похоже, Вы новый пользователь!\n"
                              f"Начните новую тренировку через /new")
     exercise_id = utils.get_user_state(chat_id)
-    if exercise_id == 0:
+    if not exercise_id:
         await message.answer(f"Пожалуйста, выберите упражнение!\n")
 
     arg_1, arg_2 = utils.get_weight_and_reps_from_message(message.text)
@@ -123,7 +123,7 @@ async def send_welcome(message: types.Message):
 
 # TODO добавить скрытие клавиатуры
 @dp.message_handler(commands=['end'])
-async def send_welcome(message: types.Message):
+async def send_end_workout(message: types.Message):
     """ Nullify user.status and user.load, then update workout.time_end and total time """
     chat_id = message.from_user.id
     utils.nullify_user(chat_id)
