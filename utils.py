@@ -12,7 +12,6 @@ from models import Users, Exercises, MuscleGroups, Workouts, Sets
 
 
 def generate_markup(buttons: List):
-    """ create keyboard in Telegram """
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     for button in buttons:
         markup.add('/' + str(button))
@@ -20,12 +19,42 @@ def generate_markup(buttons: List):
 
 
 def is_user_exist(chat_id: int):
-    """ get all chat ID in DB and find particular user chat_id """
     all_data = get_all_data(Users)
-    all_chat_id = []
     for row in all_data:
-        all_chat_id.append(row.chat)
-    return True if chat_id in all_chat_id else False
+        if row.chat == chat_id:
+            return True
+    return False
+
+
+def is_workout_exist(chat_id: int):
+    user_id = get_user_id_by_chat(Users, chat_id)
+    last_workout = get_last_workout_id_by_user_id(user_id) or None
+    if not last_workout:
+        return False
+    return True
+
+
+def are_user_and_workout_exist(chat_id: int):
+    return True if is_user_exist(chat_id) and is_workout_exist(chat_id) \
+        else False
+
+
+def create_new_user(chat_id: int):
+    create(Users(chat=chat_id))
+
+
+def create_new_workout(chat_id: int):
+    user_id = get_user_id_by_chat(Users, chat_id)
+    create(Workouts(user_id=user_id))
+
+
+def create_new_set(chat_id: int, exercise_id: int, weight, reps):
+    user_id = get_user_id_by_chat(Users, chat_id)
+    workout_id = get_last_workout_id_by_user_id(user_id)
+    create(Sets(workout_id=workout_id,
+                exercise_id=exercise_id,
+                weight=weight,
+                reps=reps))
 
 
 def get_user_state(chat_id: int):
@@ -118,25 +147,6 @@ def set_workout_end_time(chat_id: int):
     end_time = datetime.time(end_date)
     total_time = (end_date - start_date).total_seconds() // 60
     update_workout_by_id(Workouts, workout_id, end_time, total_time)
-
-
-def create_new_user(chat_id: int):
-    create(Users(chat=chat_id))
-
-
-def create_new_workout(chat_id: int):
-    user_id = get_user_id_by_chat(Users, chat_id)
-    print(user_id)
-    create(Workouts(user_id=user_id))
-
-
-def create_new_set(chat_id: int, exercise_id: int, weight, reps):
-    user_id = get_user_id_by_chat(Users, chat_id)
-    workout_id = get_last_workout_id_by_user_id(user_id)
-    create(Sets(workout_id=workout_id,
-                exercise_id=exercise_id,
-                weight=weight,
-                reps=reps))
 
 
 def delete_user(chat_id: int):

@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import utils
 
 load_dotenv()
-# Get token from .env file.
 API_TOKEN = os.getenv("API_TOKEN_TELEGRAM")
 
 logging.basicConfig(level=logging.INFO)
@@ -61,7 +60,8 @@ async def send_workout(message: types.Message):
 @dp.message_handler(commands=MUSCLE_GROUPS)
 async def send_muscle_group(message: types.Message):
     """ Choose exercise in group """
-    # TODO проверка существования пользователя и тренировки
+    if not utils.are_user_and_workout_exist(message.from_user.id):
+        await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
     group_name = message.text[1:]
     exercises = utils.get_all_exercises_by_group_name(group_name)
     markup = utils.generate_markup(exercises)
@@ -74,13 +74,15 @@ async def send_exercise(message: types.Message):
     Get exercise name,
     set User.state = Exercise.id
     """
-    # TODO проверка существования пользователя и тренировки
-    exercise_name = message.text[1:]
     user_chat = message.from_user.id
+    if not utils.are_user_and_workout_exist(user_chat):
+        await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
+    exercise_name = message.text[1:]
     exercise_id = utils.get_exercises_by_name(exercise_name)
     utils.set_user_state(user_chat, exercise_id)
+    # TODO другое сообщение без Погнали
     await message.answer(f"Погнали! Необходимо указать вес и число повторений.\n"
-                         "/next - для следующего упражнения"
+                         "/next - для следующего упражнения\n"
                          "/group - для другой группы мышц.")
 
 
@@ -90,8 +92,9 @@ async def send_next_exercise(message: types.Message):
     Get user state,
     add new exercise.
     """
-    # TODO проверка существования пользователя и тренировки
     user_chat = message.from_user.id
+    if not utils.are_user_and_workout_exist(user_chat):
+        await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
     user_state = utils.get_user_state(user_chat)
     if not user_state:
         await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
@@ -109,8 +112,9 @@ async def send_another_group(message: types.Message):
     Check user state,
     add new group of exercises
     """
-    # TODO проверка существования пользователя и тренировки
     user_chat = message.from_user.id
+    if not utils.are_user_and_workout_exist(user_chat):
+        await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
     user_state = utils.get_user_state(user_chat)
     if not user_state:
         await message.answer("Похоже, Вы забыли добавить новую тренировку через /new")
@@ -159,6 +163,7 @@ async def send_end_workout(message: types.Message):
     """
     # TODO проверка существования пользователя, тренировки
     chat_id = message.from_user.id
+
     utils.nullify_user(chat_id)
     utils.set_workout_end_time(chat_id)
     await message.answer("Отлично потренировались!")
@@ -178,6 +183,7 @@ async def send_delete_last_rep(message: types.Message):
     await message.answer(f"Удален последний подход")
 
 
+# TODO сделать отображение тренировки в конце
 # TODO добавить модуль статистики по тренировке /stat
 # TODO фильтр для перехвата флуда
 # TODO выгрузка всех данных пользователя в json-file
