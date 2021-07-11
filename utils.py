@@ -82,6 +82,10 @@ def get_all_exercises_by_group_id(group_id: int):
     return all_exercises
 
 
+def get_all_sets_by_workout_id(workout: int):
+    pass
+
+
 def get_all_exercises_by_group_name(group_name: str):
     group_id = get_id_by_name(MuscleGroups, group_name)
     return get_all_exercises_by_group_id(group_id)
