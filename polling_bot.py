@@ -199,7 +199,7 @@ async def send_stat(message: types.Message):
     workout_id = utils.get_last_workout_id_by_user_id(user_id)
     data = utils.get_all_sets_by_workout_id(workout_id)
 
-    answer = f"Данные по текущей тренировке: {data}\n"
+    answer = f"Данные по текущей тренировке:\n {data}"
     await message.answer(answer)
 
 

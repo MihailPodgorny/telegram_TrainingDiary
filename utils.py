@@ -7,7 +7,7 @@ from aiogram import types
 
 from db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
-    get_last_workout, update_workout_by_id, get_count, delete, get_last_set
+    get_last_workout, update_workout_by_id, get_count, delete, get_last_set, get_all_data_by_workout_id
 from models import Users, Exercises, MuscleGroups, Workouts, Sets
 
 
@@ -82,8 +82,17 @@ def get_all_exercises_by_group_id(group_id: int):
     return all_exercises
 
 
-def get_all_sets_by_workout_id(workout: int):
-    pass
+def get_all_sets_by_workout_id(workout_id: int):
+    all_data = get_all_data_by_workout_id(Sets, workout_id)
+    all_sets = {}
+    for _set in all_data:
+        exs = get_by_id(Exercises, _set.exercise_id)
+        all_sets.update({exs.name: [
+            {'weigth': _set.weight,
+             'reps': _set.reps}
+        ]})
+        print(all_sets)
+    return all_sets
 
 
 def get_all_exercises_by_group_name(group_name: str):
@@ -190,5 +199,5 @@ def is_new_db():
                                      original_name=row.get('original_name', 'еще одно упражение'),
                                      similar_name=row.get('similar_name', ''),
                                      video_href=row.get('video_href', '')))
-        return 'Initial data was loaded'
+        return 'Initial data has loaded'
     return 'Initial data was loaded earlier'
