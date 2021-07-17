@@ -1,7 +1,7 @@
 import pytest
 
 from tests.conftest import USER_CHAT
-from utils import is_user_exist, get_user_state, set_user_state, get_user_load,set_user_state_and_load, \
+from utils import is_user_exist, get_user_state, set_user_state, get_user_load, set_user_state_and_load, \
     nullify_user, get_weight_and_reps_from_message
 
 
@@ -13,15 +13,23 @@ def test_message(message, expected_load_n_reps):
     assert (loads, reps) == expected_load_n_reps
 
 
-def test_is_user_exist():
+def test_is_user_exist(create_data):
     assert is_user_exist(USER_CHAT)
     assert not is_user_exist(999999)
+
+
+def test_is_workout_exist(create_data):
+    pass
+
+
+def test_are_user_and_workout_exist(create_data):
+    pass
 
 
 @pytest.mark.parametrize('state',
                          [4,
                           2])
-def test_get_and_set_user_state(state):
+def test_get_and_set_user_state(create_data, state):
     set_user_state(USER_CHAT, state)
     assert get_user_state(USER_CHAT) == state
 
@@ -29,7 +37,7 @@ def test_get_and_set_user_state(state):
 @pytest.mark.parametrize('state, load',
                          [(4, 50),
                           (2, 100)])
-def test_get_and_set_user_load(create_user, state, load):
+def test_get_and_set_user_load(create_data, state, load):
     set_user_state_and_load(USER_CHAT, state, load)
     assert get_user_state(USER_CHAT) == state
     assert get_user_load(USER_CHAT) == load

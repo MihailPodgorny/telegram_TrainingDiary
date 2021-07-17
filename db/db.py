@@ -72,7 +72,6 @@ def get_all_data_by_group_id(model, group_id):
 
 def get_all_data_by_workout_id(model, workout_id):
     query = session.query(model).filter(model.workout_id == workout_id)
-    print(query)
     return query
 
 

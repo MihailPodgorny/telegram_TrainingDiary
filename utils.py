@@ -93,7 +93,6 @@ def get_all_sets_by_workout_id(workout_id: int):
             {'weigth': _set.weight,
              'reps': _set.reps}
         ]})
-        print(all_sets)
     return all_sets
 
 
