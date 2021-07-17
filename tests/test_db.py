@@ -1,8 +1,6 @@
-import pytest
-
-from db import get_user_id_by_chat, get_by_id, get_user_state_by_chat, get_user_load_by_chat, get_all_data, \
+from db.db import get_user_id_by_chat, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
     update_user_state_and_load_by_chat_id
-from models import Users
+from db.models import Users
 from tests.conftest import USER_CHAT, USER_STATE, USER_LOAD
 
 

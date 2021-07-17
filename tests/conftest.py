@@ -1,6 +1,6 @@
 import pytest
-from db import create, delete
-from models import Users
+from db.db import create, delete
+from db.models import Users
 
 STARTING_DATA_JSON_FILE = 'starting_data.json'
 USER_CHAT = 999

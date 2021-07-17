@@ -6,7 +6,7 @@ workouts.db
 draft.py
 __pycache__/
 docker_db/
-db-diagram.jpg
+db/db-diagram.jpg
 
 
 .coverage

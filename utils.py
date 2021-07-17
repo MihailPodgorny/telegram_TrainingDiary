@@ -5,10 +5,12 @@ from typing import List
 
 from aiogram import types
 
-from db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
+from db.db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
     get_last_workout, update_workout_by_id, get_count, delete, get_last_set, get_all_data_by_workout_id
-from models import Users, Exercises, MuscleGroups, Workouts, Sets
+from db.models import Users, Exercises, MuscleGroups, Workouts, Sets
+
+INITIAL_DATA_FILE = 'db/starting_data.json'
 
 
 def generate_markup(buttons: List):
@@ -184,7 +186,7 @@ def delete_set(chat_id: int):
 
 def is_new_db():
     if not get_count(MuscleGroups):
-        with open('starting_data.json') as file:
+        with open(INITIAL_DATA_FILE) as file:
             data = json.load(file)
         # TODO сделать валидацию данных
         for table_name in data:
