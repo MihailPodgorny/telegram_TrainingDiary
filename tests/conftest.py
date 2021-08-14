@@ -21,6 +21,8 @@ def create_data():
     workout2_id = create(Workouts(user_id=user_id))
     set3_id = create(Sets(workout_id=workout2_id, exercise_id=1, weight=70, reps=6))
     set4_id = create(Sets(workout_id=workout2_id, exercise_id=2, weight=WEIGHT, reps=REPS))
+
+
     yield 'Data created'
     delete(Users, user_id)
     delete(Workouts, workout1_id)

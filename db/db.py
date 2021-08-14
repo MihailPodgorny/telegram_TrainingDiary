@@ -28,7 +28,10 @@ def get_id_by_name(model, name):
 
 def get_user_id_by_chat(model, chat):
     query = session.query(model).filter(model.chat == chat).first()
-    return query.id
+    if query is None:
+        raise ValueError('Query is None')
+    else:
+        return query.id
 
 
 def get_user_state_by_chat(model, chat):

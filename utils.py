@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 from aiogram import types
+from aiogram.types import ReplyKeyboardMarkup
 
 from db.db import get_all_data, get_all_data_by_group_id, update_user_state_and_load_by_chat_id, create, \
     get_user_id_by_chat, get_id_by_name, get_by_id, get_user_state_by_chat, get_user_load_by_chat, \
@@ -13,14 +14,14 @@ from db.models import Users, Exercises, MuscleGroups, Workouts, Sets
 INITIAL_DATA_FILE = 'db/starting_data.json'
 
 
-def generate_markup(buttons: List):
+def generate_markup(buttons: List) -> ReplyKeyboardMarkup:
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     for button in buttons:
         markup.add('/' + str(button))
     return markup
 
 
-def is_user_exist(chat_id: int):
+def is_user_exist(chat_id: int) -> bool:
     all_data = get_all_data(Users)
     for row in all_data:
         if row.chat == chat_id:
@@ -28,7 +29,7 @@ def is_user_exist(chat_id: int):
     return False
 
 
-def is_workout_exist(chat_id: int):
+def is_workout_exist(chat_id: int) -> bool:
     user_id = get_user_id_by_chat(Users, chat_id)
     last_workout = get_last_workout_id_by_user_id(user_id) or None
     if not last_workout:
@@ -36,21 +37,30 @@ def is_workout_exist(chat_id: int):
     return True
 
 
-def are_user_and_workout_exist(chat_id: int):
+def is_set_exist(chat_id: int) -> bool:
+    user_id = get_user_id_by_chat(Users, chat_id)
+    last_workout = get_last_workout_id_by_user_id(user_id) or None
+    last_set_id, _, _ = get_last_set_id_by_workout_id(last_workout)
+    if last_set_id is None:
+        return False
+    return True
+
+
+def are_user_and_workout_exist(chat_id: int) -> bool:
     return True if is_user_exist(chat_id) and is_workout_exist(chat_id) \
         else False
 
 
-def create_new_user(chat_id: int):
+def create_new_user(chat_id: int) -> None:
     create(Users(chat=chat_id))
 
 
-def create_new_workout(chat_id: int):
+def create_new_workout(chat_id: int) -> None:
     user_id = get_user_id_by_chat(Users, chat_id)
     create(Workouts(user_id=user_id))
 
 
-def create_new_set(chat_id: int, exercise_id: int, weight, reps):
+def create_new_set(chat_id: int, exercise_id: int, weight, reps) -> None:
     user_id = get_user_id_by_chat(Users, chat_id)
     workout_id = get_last_workout_id_by_user_id(user_id)
     create(Sets(workout_id=workout_id,
@@ -116,6 +126,8 @@ def get_group_id_by_exercise_id(exercise_id: int):
 
 
 def get_last_workout_id_by_user_id(user_id: int):
+    if user_id is None:
+        raise ValueError('user_id must be int, not None')
     last_workout, date_now, start_time = get_last_workout(Workouts, user_id)
     return last_workout
 
@@ -141,19 +153,19 @@ def get_all_exercises():
     return all_exercises
 
 
-def set_user_state_and_load(chat_id: int, state: int, load: int):
+def set_user_state_and_load(chat_id: int, state: int, load: int) -> None:
     update_user_state_and_load_by_chat_id(Users, chat_id, state, load)
 
 
-def set_user_state(chat_id: int, state: int):
+def set_user_state(chat_id: int, state: int) -> None:
     update_user_state_and_load_by_chat_id(Users, chat_id, state, 0)
 
 
-def nullify_user(chat_id: int):
+def nullify_user(chat_id: int) -> None:
     update_user_state_and_load_by_chat_id(Users, chat_id, 0, 0)
 
 
-def set_workout_end_time(chat_id: int):
+def set_workout_end_time(chat_id: int) -> None:
     user_id = get_user_id_by_chat(Users, chat_id)
     workout_id, date_, time_ = get_last_workout(Workouts, user_id)
     start_date = datetime.combine(date_, time_)
@@ -163,12 +175,12 @@ def set_workout_end_time(chat_id: int):
     update_workout_by_id(Workouts, workout_id, end_time, total_time)
 
 
-def delete_user(chat_id: int):
+def delete_user(chat_id: int) -> None:
     user_id = get_user_id_by_chat(Users, chat_id)
     delete(Users, user_id)
 
 
-def delete_set(chat_id: int):
+def delete_set(chat_id: int) -> None:
     user_id = get_user_id_by_chat(Users, chat_id)
     workout_id = get_last_workout_id_by_user_id(user_id) or None
     if workout_id:
@@ -183,7 +195,7 @@ def delete_set(chat_id: int):
                 nullify_user(chat_id)
 
 
-def is_new_db():
+def is_new_db() -> str:
     if not get_count(MuscleGroups):
         with open(INITIAL_DATA_FILE) as file:
             data = json.load(file)
